@@ -15,10 +15,14 @@ import warnings
 
 ## Constants ------------------------------------------------------------------
 
+TORCH_VERSION = "".join(torch.__version__.split(".")[:2])
 WARNING_MSG = (
     "no efficient lfilter implementation for device '%s' found. "
-    "falling back to a (much slower) pure python implementation."
-)
+    "falling back to a (much slower) pure python implementation.\n"
+    "Make sure you have the right torch_lfilter version installed. "
+    "The version number ending should match the PyTorch version:\n"
+    "PyTorch version: %s  ---> torch_lfilter version: x.x.x.%s ."
+) % ("%s", torch.__version__, TORCH_VERSION)
 
 
 ## C++ Extension Imports ------------------------------------------------------
@@ -37,6 +41,7 @@ except ImportError:
 
 
 ## lfilter --------------------------------------------------------------------
+
 
 def lfilter(b, a, x):
     """PyTorch lfilter
@@ -59,6 +64,7 @@ def lfilter(b, a, x):
 
 ## LFilter --------------------------------------------------------------------
 
+
 def _lfilter_general_forward(x, y, b, a, order, num_timesteps):
     """ general lfilter implementation valid for all devices """
     y[0] += b[-1] * x[0]
@@ -70,6 +76,7 @@ def _lfilter_general_forward(x, y, b, a, order, num_timesteps):
         y[n] += (b * x[n - order + 1 : n + 1]).sum(0)
         y[n] -= (a * y[n - order + 1 : n]).sum(0)
 
+
 def _lfilter_general_backward(dL_dx, dL_dy, b, a, order, num_timesteps):
     """ general lfilter backward implementation valid for all devices """
     for n in range(num_timesteps - 1, order - 1, -1):
@@ -80,6 +87,7 @@ def _lfilter_general_backward(dL_dx, dL_dy, b, a, order, num_timesteps):
         dL_dy[:n] -= a[-n:] * dL_dy[n : n + 1]
         dL_dx[: n + 1] += b[-n - 1 :] * dL_dy[n : n + 1]
     dL_dx[0] += b[-1] * dL_dy[0]
+
 
 class _LFilter(torch.autograd.Function):
     @staticmethod

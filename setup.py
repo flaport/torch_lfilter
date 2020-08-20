@@ -1,8 +1,12 @@
 """ Bring lowpass filtering to PyTorch! """
 
+import torch
 import torch_lfilter
 from setuptools import setup, Extension
 from torch.utils import cpp_extension
+
+torch_version = "".join(torch.__version__.split(".")[:2])
+full_version = f"{torch_lfilter.__version__}.{torch_version}"
 
 with open("readme.md", "r") as f:
     long_description = f.read()
@@ -19,7 +23,7 @@ torch_lfilter_cpp = Extension(
 
 setup(
     name="torch_lfilter",
-    version=torch_lfilter.__version__,
+    version=full_version,
     author=torch_lfilter.__author__,
     author_email="floris.laporte@gmail.com",
     description=torch_lfilter.__doc__.splitlines()[0],
