@@ -2,7 +2,7 @@
 
 ## Metadata -------------------------------------------------------------------
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Floris Laporte"
 __all__ = ["lfilter"]
 
@@ -17,12 +17,11 @@ import warnings
 
 TORCH_VERSION = "".join(torch.__version__.split(".")[:2])
 WARNING_MSG = (
-    "no efficient lfilter implementation for device '%s' found. "
+    "no efficient C++ lfilter implementation for %s-tensors found. "
     "falling back to a (much slower) pure python implementation.\n"
-    "Make sure you have the right torch_lfilter version installed. "
-    "The version number ending should match the PyTorch version:\n"
-    "PyTorch version: %s  ---> torch_lfilter version: x.x.x.%s ."
-) % ("%s", torch.__version__, TORCH_VERSION)
+    "So far, only an efficient implementation for cpu-tensors exists. "
+    "Consider placing your '%s'-tensor on the CPU."
+)
 
 
 ## C++ Extension Imports ------------------------------------------------------
@@ -32,6 +31,15 @@ try:
 except ImportError:
     _lfilter_cpu_forward = None
     _lfilter_cpu_backward = None
+    warnings.warn(
+        (
+            "no efficient C++ lfilter implementation for cpu-tensors found. "
+            "falling back to a (much slower) pure python implementation.\n"
+            "Make sure you have the right version of torch_lfilter installed. "
+            "The version number ending should match the PyTorch version:\n"
+            "PyTorch version: %s  ---> torch_lfilter version: x.x.x.%s ."
+        ) % (torch.__version__, TORCH_VERSION)
+    )
 
 try:
     from torch_lfilter_cpp import _lfilter_cuda_forward, _lfilter_cuda_backward
@@ -57,7 +65,7 @@ def lfilter(b, a, x):
 
     """
     y = _LFilter.apply(
-        b, a, x.reshape(x.shape[0], -1).to(dtype=torch.float64, device="cpu")
+        b, a, x.reshape(x.shape[0], -1).to(dtype=torch.float64, device=x.device)
     )
     return y.reshape(*x.shape).to(device=x.device, dtype=x.dtype)
 
@@ -112,16 +120,16 @@ class _LFilter(torch.autograd.Function):
             if _lfilter_cpu_forward is not None:
                 _lfilter_forward = _lfilter_cpu_forward
             else:
-                warnings.warn(WARNING_MSG % x.device)
+                warnings.warn(WARNING_MSG % (x.device, x.device))
                 _lfilter_forward = _lfilter_general_forward
         elif x.device == torch.device("cuda"):
             if _lfilter_cuda_forward is not None:
                 _lfilter_forward = _lfilter_cuda_forward
             else:
-                warnings.warn(WARNING_MSG % x.device)
+                warnings.warn(WARNING_MSG % (x.device, x.device))
                 _lfilter_forward = _lfilter_general_forward
         else:
-            warnings.warn(WARNING_MSG % x.device)
+            warnings.warn(WARNING_MSG % (x.device, x.device))
             _lfilter_forward = _lfilter_general_forward
 
         _lfilter_forward(x, y, b, a, order, num_timesteps)
