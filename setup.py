@@ -5,8 +5,11 @@ import torch_lfilter
 from setuptools import setup, Extension
 from torch.utils import cpp_extension
 
-with open("readme.md", "r") as f:
-    long_description = f.read()
+try:
+    with open("readme.md", "r") as f:
+        long_description = f.read()
+except FileNotFoundError:
+    long_description = torch_lfilter.__doc__
 
 torch_lfilter_cpp = Extension(
     name="torch_lfilter_cpp",
