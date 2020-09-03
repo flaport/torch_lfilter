@@ -5,9 +5,6 @@ import torch_lfilter
 from setuptools import setup, Extension
 from torch.utils import cpp_extension
 
-torch_version = "".join(torch.__version__.split(".")[:2])
-full_version = f"{torch_lfilter.__version__}.{torch_version}"
-
 with open("readme.md", "r") as f:
     long_description = f.read()
 
@@ -17,13 +14,18 @@ torch_lfilter_cpp = Extension(
     include_dirs=cpp_extension.include_paths(),
     library_dirs=cpp_extension.library_paths(),
     extra_compile_args=[],
-    libraries=["c10", "torch", "torch_cpu", "torch_python",],
+    libraries=[
+        "c10",
+        "torch",
+        "torch_cpu",
+        "torch_python",
+    ],
     language="c++",
 )
 
 setup(
     name="torch_lfilter",
-    version=full_version,
+    version=torch_lfilter.__version__,
     author=torch_lfilter.__author__,
     author_email="floris.laporte@gmail.com",
     description=torch_lfilter.__doc__.splitlines()[0],

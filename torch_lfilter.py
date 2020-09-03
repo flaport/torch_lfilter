@@ -15,7 +15,6 @@ import warnings
 
 ## Constants ------------------------------------------------------------------
 
-TORCH_VERSION = "".join(torch.__version__.split(".")[:2])
 WARNING_MSG = (
     "no efficient C++ lfilter implementation for %s-tensors found. "
     "falling back to a (much slower) pure python implementation.\n"
@@ -32,13 +31,11 @@ except ImportError:
     _lfilter_cpu_forward = None
     _lfilter_cpu_backward = None
     warnings.warn(
-        (
-            "no efficient C++ lfilter implementation for cpu-tensors found. "
-            "falling back to a (much slower) pure python implementation.\n"
-            "Make sure you have the right version of torch_lfilter installed. "
-            "The version number ending should match the PyTorch version:\n"
-            "PyTorch version: %s  ---> torch_lfilter version: x.x.x.%s ."
-        ) % (torch.__version__, TORCH_VERSION)
+        "no efficient C++ lfilter implementation for cpu-tensors found. "
+        "falling back to a (much slower) pure python implementation.\n\n"
+        "Maybe something went wrong during the compilation of torch_lfilter? "
+        "Please check out the installation instructions at "
+        "https://github.com/flaport/torch_lfilter."
     )
 
 try:
