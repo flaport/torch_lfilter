@@ -56,11 +56,15 @@ additional items:
 - C++/CLI support
 - VC++ 2015.3 v14.00 (v140) toolset for desktop
 
-After installation, run the following commands _inside_ a **x64 Native
-Tools Command Prompt for VS 2017**, after activating your conda
-environment:
+Then, download Microsoft Visual C++ Redistributable from
+[here](https://aka.ms/vs/16/release/vc_redist.x64.exe).
+
+After these installation steps, run the following commands _inside_ a
+**x64 Native Tools Command Prompt for VS 2017**, after activating your
+conda environment:
 
 ```
+set DISTUTILS_USE_SDK=1
 conda install pytorch -c pytorch
 pip install torch_lfilter
 ```
